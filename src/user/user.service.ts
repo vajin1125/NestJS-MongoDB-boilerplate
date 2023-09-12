@@ -4,20 +4,21 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+// import { InjectModel } from '@nestjs/mongoose';
+// import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/schemas/user.schema';
 import { CreateUserDto } from 'src/DTO/user/create-user.dto';
 import { LoginUserDto } from 'src/DTO/user/login-user.dto';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserAuthService {
   private readonly logger = new Logger(UserAuthService.name);
 
   constructor(
-    @InjectModel(User.name) private userModel: Model<User>,
+    private readonly userRepository: UserRepository,
     private jwtService: JwtService,
   ) {}
 
@@ -32,8 +33,9 @@ export class UserAuthService {
         created_by: createUserDto.first_name + ' ' + createUserDto.last_name,
         created_at: new Date(),
       };
-      const userEntity = new this.userModel(entity);
-      await userEntity.save();
+      // const userEntity = new this.userModel(entity);
+      // await userEntity.save();
+      await this.userRepository.create(entity);
       return { message: 'User registered successfully' };
     } catch (error) {
       throw new Error(error);
@@ -42,7 +44,9 @@ export class UserAuthService {
 
   async loginUser(loginUserDto: LoginUserDto): Promise<string> {
     try {
-      const user = await this.userModel.findOne({ email: loginUserDto.email });
+      const user = await this.userRepository.findOne({
+        email: loginUserDto.email,
+      });
       if (!user) {
         throw new NotFoundException('User not found');
       }
@@ -62,10 +66,9 @@ export class UserAuthService {
     }
   }
 
-  async getUsers(): Promise<User[]> {
+  async getUsers(params: Record<string, unknown> = {}): Promise<User[]> {
     try {
-      const users = await this.userModel.find({});
-      return users;
+      return await this.userRepository.find(params);
     } catch (error) {
       this.logger.error(
         `An error occurred while retrieving users: ${error.message}`,
