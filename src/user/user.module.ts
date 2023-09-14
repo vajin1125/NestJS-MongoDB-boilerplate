@@ -1,4 +1,4 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserAuthService } from './user.service';
@@ -18,7 +18,4 @@ import { UserRepository } from './user.repository';
   providers: [UserAuthService, UserRepository],
   controllers: [UserAuthController],
 })
-export class UserAuthModule implements NestModule {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  configure(_consumer: MiddlewareConsumer) {}
-}
+export class UserAuthModule {}
